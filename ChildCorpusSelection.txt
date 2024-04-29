@@ -1,0 +1,329 @@
+function selectRows() {
+  var sourceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("parent corpus demographics");
+  var destinationSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("child corpus");
+
+  // Clear destination sheet before appending new data
+  destinationSheet.clear();
+
+  var sourceData = sourceSheet.getDataRange().getValues();
+
+  // Shuffle the source data (excluding header)
+  var shuffledData = shuffleArray(sourceData.slice(1));
+
+  var selectedRows = [];
+  var selectedRows2 = [];
+  var selectedRows3 = [];
+  var artistCount = {}; // Store count of values in column A (Artist names)
+  var yearCount = {}; // Store count of values in column D (Year)
+  var genderSum = 0; //
+  var genderTarget = 50 // DEFINE TARGET HERE
+  
+  // Append header row to destination sheet
+  selectedRows.push(sourceData[0]);
+
+  // Step 1a: Iterate through source data to select rows with Agency = 1
+  for (var i = 1; i < shuffledData.length; i++) { // Start from index 1 to skip header row
+    var row = shuffledData[i];
+    var agency = row[8]; // Assuming column I is the column for Agency
+    var year = row[3]; // Assuming column D is the column for Year
+    var artist = row[0]; // Assuming column A is the column for Artist
+    var gender = row[4]; // Assuming column E is the column for Gender
+    var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+
+    // Select rows with positive value in the Agency column
+    if (agency > 0) {
+      selectedRows.push(row);
+      
+      // Update counts for Year and Artist columns
+      yearCount[year] = (yearCount[year] || 0) + 1;
+      artistCount[artist] = (artistCount[artist] || 0) + 1;
+      genderSum += gender;
+    }
+  }
+
+  // Step 1b: Remove additional rows to ensure counts don't exceed specified limits
+  for (var j = 1; j < selectedRows.length; j++) { // Start from index 1 to skip header row
+    var row = selectedRows[j];
+    var year = row[3]; // Assuming column D is the column for Year
+    var artist = row[0]; // Assuming column A is the column for Artist
+    var gender = row[4]; // Assuming column E is the column for Gender
+    
+    // Check if counts exceed limits and remove rows accordingly
+    if (yearCount[year] > 10 || artistCount[artist] > 5 || genderSum > genderTarget ) {
+      selectedRows.splice(j, 1); // Remove row from selectedRows
+      j--; // Decrement j to account for removed row
+      // Update counts after removing row
+      yearCount[year]--;
+      artistCount[artist]--;
+      genderSum -= gender;
+    }
+  }
+
+  // Append selected rows to destination sheet
+  for (var k = 0; k < selectedRows.length; k++) {
+    destinationSheet.appendRow(selectedRows[k]);
+  }
+
+// Step 2a: Iterate through source data to select minoritized (but not agentive) rows to complete the child corpus
+for (var l = 1; l < shuffledData.length; l++) { // Start from index 1 to skip header row
+  var row = shuffledData[l]; // Extract the current row being iterated over
+  var agency = row[8]; // Assuming column I is the column for Agency
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+  
+  // Select rows based on the specified criteria
+  if ((agency == 0 && gender == 1) || (agency == 0 && ethnicity == 1)) {
+    selectedRows2.push(row);
+
+    // Update counts for Year and Artist columns
+    yearCount[year] = (yearCount[year] || 0) + 1;
+    artistCount[artist] = (artistCount[artist] || 0) + 1;
+    genderSum += gender;
+  }
+}
+
+// Step 2b: Remove additional rows to ensure counts don't exceed specified limits
+var m = 1; // Initialize outside the loop
+while (m < selectedRows2.length) { // Start from index 1 to skip header row
+  var row = selectedRows2[m];
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  
+  // Check if counts exceed limits and remove rows accordingly
+  if (yearCount[year] > 10 || artistCount[artist] > 5 || genderSum > genderTarget ) {
+    // Update counts after removing row
+    yearCount[year]--;
+    artistCount[artist]--;
+    genderSum -= gender;
+    
+    selectedRows2.splice(m, 1); // Remove row from selectedRows2
+  } else {
+    m++; // Increment m if no row is removed
+  }
+}
+
+// Append selected rows to destination sheet
+for (var n = 0; n < selectedRows2.length; n++) {
+  destinationSheet.appendRow(selectedRows2[n]);
+}
+
+// Step 3a: Iterate through source data to select minoritized (but not agentive) rows to complete the child corpus
+for (var p = 1; p < shuffledData.length; p++) { // Start from index 1 to skip header row
+  var row = shuffledData[p]; // Extract the current row being iterated over
+  var agency = row[8]; // Assuming column I is the column for Agency
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+  
+  // Select rows with zero values in Agency, Gender, and Ethnicity columns
+  if (agency == 0 && gender == 0 && ethnicity == 0) {
+    selectedRows3.push(row);
+
+    // Update counts for Year and Artist columns
+    yearCount[year] = (yearCount[year] || 0) + 1;
+    artistCount[artist] = (artistCount[artist] || 0) + 1;
+    genderSum += gender;
+  }
+}
+
+// Step 3b: Remove additional rows to ensure counts don't exceed specified limits
+var q = 1; // Initialize outside the loop
+while (q < selectedRows3.length) { // Start from index 1 to skip header row
+  var row = selectedRows3[q];
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  
+  // Check if counts exceed limits and remove rows accordingly
+  if (yearCount[year] > 10 || artistCount[artist] > 5 || genderSum > genderTarget ) {
+    // Update counts after removing row
+    yearCount[year]--;
+    artistCount[artist]--;
+    genderSum -= gender;
+    
+    selectedRows3.splice(q, 1); // Remove row from selectedRows3
+  } else {
+    q++; // Increment q if no row is removed
+  }
+}
+
+// Append selected rows to destination sheet
+for (var r = 0; r < selectedRows3.length; r++) {
+  destinationSheet.appendRow(selectedRows3[r]);
+}
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  return array;
+}
+}
+
+function selectRows() {
+  var sourceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("parent corpus demographics");
+  var destinationSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("child corpus");
+
+  // Clear destination sheet before appending new data
+  destinationSheet.clear();
+
+  var sourceData = sourceSheet.getDataRange().getValues();
+
+  // Shuffle the source data (excluding header)
+  var shuffledData = shuffleArray(sourceData.slice(1));
+
+  var selectedRows = [];
+  var selectedRows2 = [];
+  var selectedRows3 = [];
+  var artistCount = {}; // Store count of values in column A (Artist names)
+  var yearCount = {}; // Store count of values in column D (Year)
+  
+  // Append header row to destination sheet
+  selectedRows.push(sourceData[0]);
+
+  // Step 1a: Iterate through source data to select rows with Agency = 1
+  for (var i = 1; i < shuffledData.length; i++) { // Start from index 1 to skip header row
+    var row = shuffledData[i];
+    var agency = row[8]; // Assuming column I is the column for Agency
+    var year = row[3]; // Assuming column D is the column for Year
+    var artist = row[0]; // Assuming column A is the column for Artist
+    var gender = row[4]; // Assuming column E is the column for Gender
+    var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+
+    // Select rows with positive value in the Agency column
+    if (agency > 0 ) {
+      selectedRows.push(row);
+      
+      // Update counts for Year and Artist columns
+      yearCount[year] = (yearCount[year] || 0) + 1;
+      artistCount[artist] = (artistCount[artist] || 0) + 1;
+    }
+  }
+
+  // Step 1b: Remove additional rows to ensure counts don't exceed specified limits
+  for (var j = 1; j < selectedRows.length; j++) { // Start from index 1 to skip header row
+    var row = selectedRows[j];
+    var year = row[3]; // Assuming column D is the column for Year
+    var artist = row[0]; // Assuming column A is the column for Artist
+    
+    // Check if counts exceed limits and remove rows accordingly
+    if (yearCount[year] > 10 || artistCount[artist] > 5) {
+      selectedRows.splice(j, 1); // Remove row from selectedRows
+      j--; // Decrement j to account for removed row
+      // Update counts after removing row
+      yearCount[year]--;
+      artistCount[artist]--;
+    }
+  }
+
+  // Append selected rows to destination sheet
+  for (var k = 0; k < selectedRows.length; k++) {
+    destinationSheet.appendRow(selectedRows[k]);
+  }
+
+// Step 2a: Iterate through source data to select minoritized (but not agentive) rows to complete the child corpus
+for (var l = 1; l < shuffledData.length; l++) { // Start from index 1 to skip header row
+  var row = shuffledData[l]; // Extract the current row being iterated over
+  var agency = row[8]; // Assuming column I is the column for Agency
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+  
+  // Select rows based on the specified criteria
+  if ((agency == 0 && gender == 1) || (agency == 0 && ethnicity == 1)) {
+    selectedRows2.push(row);
+
+    // Update counts for Year and Artist columns
+    yearCount[year] = (yearCount[year] || 0) + 1;
+    artistCount[artist] = (artistCount[artist] || 0) + 1;
+  }
+}
+
+// Step 2b: Remove additional rows to ensure counts don't exceed specified limits
+var m = 1; // Initialize outside the loop
+while (m < selectedRows2.length) { // Start from index 1 to skip header row
+  var row = selectedRows2[m];
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  
+  // Check if counts exceed limits and remove rows accordingly
+  if (yearCount[year] > 10 || artistCount[artist] > 5) {
+    // Update counts after removing row
+    yearCount[year]--;
+    artistCount[artist]--;
+    
+    selectedRows2.splice(m, 1); // Remove row from selectedRows2
+  } else {
+    m++; // Increment m if no row is removed
+  }
+}
+
+// Append selected rows to destination sheet
+for (var n = 0; n < selectedRows2.length; n++) {
+  destinationSheet.appendRow(selectedRows2[n]);
+}
+
+// Step 3a: Iterate through source data to select minoritized (but not agentive) rows to complete the child corpus
+for (var p = 1; p < shuffledData.length; p++) { // Start from index 1 to skip header row
+  var row = shuffledData[p]; // Extract the current row being iterated over
+  var agency = row[8]; // Assuming column I is the column for Agency
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+  
+  // Select rows with zero values in Agency, Gender, and Ethnicity columns
+  if (agency == 0 && gender == 0 && ethnicity == 0) {
+    selectedRows3.push(row);
+
+    // Update counts for Year and Artist columns
+    yearCount[year] = (yearCount[year] || 0) + 1;
+    artistCount[artist] = (artistCount[artist] || 0) + 1;
+  }
+}
+
+// Step 3b: Remove additional rows to ensure counts don't exceed specified limits
+var q = 1; // Initialize outside the loop
+while (q < selectedRows3.length) { // Start from index 1 to skip header row
+  var row = selectedRows3[q];
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  
+  // Check if counts exceed limits and remove rows accordingly
+  if (yearCount[year] > 10 || artistCount[artist] > 5) {
+    // Update counts after removing row
+    yearCount[year]--;
+    artistCount[artist]--;
+    
+    selectedRows3.splice(q, 1); // Remove row from selectedRows3
+  } else {
+    q++; // Increment q if no row is removed
+  }
+}
+
+// Append selected rows to destination sheet
+for (var r = 0; r < selectedRows3.length; r++) {
+  destinationSheet.appendRow(selectedRows3[r]);
+}
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  return array;
+}
+}
+
