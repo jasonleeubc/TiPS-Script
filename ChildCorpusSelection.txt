@@ -14,13 +14,13 @@ function selectRows() {
   var yearCount = {}; // Store count of values in column D (Year)
   var genderSum = 0; //
   var ethnicitySum = 0 ;//
-  var genderTarget = 50 // DEFINE TARGET NUMBER OF NON-MALE ENTRIES HERE
-  var ethnicityTarget = 42 // DEFINE TARGET NUMBER OF NON-WHITE ENTRIES HERE
+  var genderTarget = 52 // DEFINE TARGET NUMBER OF NON-MALE ENTRIES HERE
+  var ethnicityTarget = 45 // DEFINE TARGET NUMBER OF NON-WHITE ENTRIES HERE
   
   // Append header row to destination sheet
   selectedRows.push(sourceData[0]);
 
-// Step 1: Iterate through the parent corpus to select rows with Agency = 1
+// Step 1: Iterate through the parent corpus to select rows with Gender, Ethnicity, and Agency = 1
   for (var i = 1; i < shuffledData.length; i++) { // Start from index 1 to skip header row
   var row = shuffledData[i];
   var agency = row[8]; // Assuming column I is the column for Agency
@@ -30,7 +30,7 @@ function selectRows() {
   var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
 
     // Select rows with positive value in the Agency column
-    if (agency > 0) {
+    if (agency > 0 && gender > 0 && ethnicity > 0) {
     // Check if counts exceed limits before adding the row
       if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist]===undefined) && genderSum < genderTarget && ethnicitySum < ethnicityTarget) {
         selectedRows.push(row);
@@ -44,7 +44,7 @@ function selectRows() {
     }
   }
 
-// Step 2: Iterate through the parent corpus to select minoritized (but with agency = 0) rows to complete the child corpus
+// Step 2: Iterate through the parent corpus to select rows with Agency = 1, but with Gender = 0 and Ethnicity = 1
   for (var j = 1; j < shuffledData.length; j++) { // Start from index 1 to skip header row
   var row = shuffledData[j];
   var agency = row[8]; // Assuming column I is the column for Agency
@@ -54,9 +54,9 @@ function selectRows() {
   var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
 
     // Select rows with positive value in the Agency column
-    if ((agency == 0 && gender == 1) || (agency == 0 && ethnicity == 1)) {
+    if (agency > 0 && gender == 0 && ethnicity > 0) {
     // Check if counts exceed limits before adding the row
-      if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist]===undefined) && genderSum < genderTarget && ethnicitySum < ethnicityTarget) {
+      if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist]===undefined) && ethnicitySum < ethnicityTarget) {
         selectedRows.push(row);
 
         // Update counts for Year and Artist columns
@@ -68,7 +68,7 @@ function selectRows() {
     }
   }
 
-// Step 3: Iterate through the parent corpus to select non-minoritized  rows to complete the child corpus
+// Step 3: Iterate through the parent corpus to select rows with Agency = 1, but with Gender = 1 and Ethnicity = 0
   for (var k = 1; k < shuffledData.length; k++) { // Start from index 1 to skip header row
   var row = shuffledData[k];
   var agency = row[8]; // Assuming column I is the column for Agency
@@ -78,9 +78,80 @@ function selectRows() {
   var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
 
     // Select rows with positive value in the Agency column
+    if (agency > 0 && gender > 0 && ethnicity == 0) {
+    // Check if counts exceed limits before adding the row
+      if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist]===undefined) && genderSum < genderTarget) {
+        selectedRows.push(row);
+
+        // Update counts for Year and Artist columns
+        yearCount[year] = (yearCount[year] || 0) + 1;
+        artistCount[artist] = (artistCount[artist] || 0) + 1;
+        genderSum += gender;
+        ethnicitySum += ethnicity;
+      }
+    }
+  }
+
+// Step 4: Iterate through the parent corpus to select non-male (but with agency = 0) entries to complete the child corpus
+  for (var l = 1; l < shuffledData.length; l++) { // Start from index 1 to skip header row
+  var row = shuffledData[l];
+  var agency = row[8]; // Assuming column I is the column for Agency
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+
+    // Select rows with positive value in the Agency column
+    if (agency == 0 && gender == 1) {
+    // Check if counts exceed limits before adding the row
+      if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist]===undefined) && genderSum < genderTarget) {
+        selectedRows.push(row);
+
+        // Update counts for Year and Artist columns
+        yearCount[year] = (yearCount[year] || 0) + 1;
+        artistCount[artist] = (artistCount[artist] || 0) + 1;
+        genderSum += gender;
+        ethnicitySum += ethnicity;
+      }
+    }
+  }
+
+// Step 5: Iterate through the parent corpus to select non-white (but with agency = 0) entries to complete the child corpus
+  for (var m = 1; m < shuffledData.length; m++) { // Start from index 1 to skip header row
+  var row = shuffledData[m];
+  var agency = row[8]; // Assuming column I is the column for Agency
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+
+    // Select rows with positive value in the Agency column
+    if (agency == 0 && ethnicity == 1) {
+    // Check if counts exceed limits before adding the row
+      if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist]===undefined) && ethnicitySum < ethnicityTarget) {
+        selectedRows.push(row);
+
+        // Update counts for Year and Artist columns
+        yearCount[year] = (yearCount[year] || 0) + 1;
+        artistCount[artist] = (artistCount[artist] || 0) + 1;
+        genderSum += gender;
+        ethnicitySum += ethnicity;
+      }
+    }
+  }
+// Step 6: Iterate through the parent corpus to select non-minoritized  rows to complete the child corpus
+  for (var n = 1; n < shuffledData.length; n++) { // Start from index 1 to skip header row
+  var row = shuffledData[n];
+  var agency = row[8]; // Assuming column I is the column for Agency
+  var year = row[3]; // Assuming column D is the column for Year
+  var artist = row[0]; // Assuming column A is the column for Artist
+  var gender = row[4]; // Assuming column E is the column for Gender
+  var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
+
+    // Select rows with positive value in the Agency column
     if ((agency == 0 && gender == 0 && ethnicity == 0)) {
     // Check if counts exceed limits before adding the row
-      if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist]===undefined)) {
+      if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist] === undefined)) {
         selectedRows.push(row);
 
         // Update counts for Year and Artist columns
@@ -91,11 +162,42 @@ function selectRows() {
   }
 
 // Append selected rows to destination sheet
-  for (var l = 0; l < selectedRows.length; l++) {
-    destinationSheet.appendRow(selectedRows[l]);
+  for (var p = 0; p < selectedRows.length; p++) {
+    destinationSheet.appendRow(selectedRows[p]);
   }
 
+// Add a new sheet for reporting the count of artists, year, gender, and ethnicity in the child corpus
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var childCorpusStatsSheet = spreadsheet.getSheetByName("child corpus stats");
 
+  // Check if the sheet already exists
+  if (childCorpusStatsSheet) {
+  // Clear existing data in the sheet
+  childCorpusStatsSheet.clear();
+  } else {
+  // Create a new sheet called "child corpus stats" if it doesn't exist
+  childCorpusStatsSheet = spreadsheet.insertSheet("child corpus stats");
+  }
+
+  // Create a pivot table for artist counts
+  childCorpusStatsSheet.getRange("A1").setValue("Artist");
+  childCorpusStatsSheet.getRange("B1").setValue("Count");
+  childCorpusStatsSheet.getRange("A2").setFormula('=transpose(query(\'child corpus\'!A:L,"select count(C) where C is not null pivot A "))');
+
+  // Create a pivot table for year counts
+  childCorpusStatsSheet.getRange("D1").setValue("Year");
+  childCorpusStatsSheet.getRange("E1").setValue("Count");
+  childCorpusStatsSheet.getRange("D2").setFormula('=transpose(query(\'child corpus\'!A:L,"select count(C) where C is not null pivot D "))');
+
+  // Create a pivot table for gender counts
+  childCorpusStatsSheet.getRange("G1").setValue("Gender");
+  childCorpusStatsSheet.getRange("H1").setValue("Count");
+  childCorpusStatsSheet.getRange("G2").setFormula('=transpose(query(\'child corpus\'!A:L,"select count(C) where C is not null pivot E "))');
+
+  // Create a pivot table for ethnicity counts
+  childCorpusStatsSheet.getRange("J1").setValue("Ethnicity");
+  childCorpusStatsSheet.getRange("K1").setValue("Count");
+  childCorpusStatsSheet.getRange("J2").setFormula('=transpose(query(\'child corpus\'!A:L,"select count(C) where C is not null pivot H "))');
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray(array) {
