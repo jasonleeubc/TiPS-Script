@@ -13,9 +13,9 @@ function selectRows() {
   var artistCount = {}; // Store count of values in column A (Artist names)
   var yearCount = {}; // Store count of values in column D (Year)
   var genderSum = 0; //
-  var ethnicitySum = 0 ;//
-  var genderTarget = 52 // DEFINE TARGET NUMBER OF NON-MALE ENTRIES HERE
-  var ethnicityTarget = 45 // DEFINE TARGET NUMBER OF NON-WHITE ENTRIES HERE
+  var ethnicitySum = 0; //
+  var genderTarget = 52; // DEFINE TARGET NUMBER OF NON-MALE ENTRIES HERE
+  var ethnicityTarget = 45; // DEFINE TARGET NUMBER OF NON-WHITE ENTRIES HERE
   
   // Append header row to destination sheet
   selectedRows.push(sourceData[0]);
