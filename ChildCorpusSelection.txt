@@ -149,7 +149,7 @@ function selectRows() {
   var ethnicity = row[7]; // Assuming column H is the column for Ethnicity
 
     // Select rows with positive value in the Agency column
-    if ((agency == 0 && gender == 0 && ethnicity == 0)) {
+    if ((agency === 0 && gender === 0 && ethnicity === 0)) {
     // Check if counts exceed limits before adding the row
       if ((yearCount[year] < 10 || yearCount[year] === undefined) && (artistCount[artist] < 5 || artistCount[artist] === undefined)) {
         selectedRows.push(row);
